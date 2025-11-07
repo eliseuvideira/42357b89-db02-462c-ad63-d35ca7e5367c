@@ -1,36 +1,47 @@
 import pino from "pino";
-import type { Logger } from "./types";
+
+export type LogLevel = "info" | "warn" | "error" | "fatal" | "debug" | "trace";
 
 export type LogFn = (msg: string, data?: Record<string, unknown>) => void;
 
-const wrapLogger = (pinoLogger: pino.Logger): Logger => {
-  const createLogFn = (level: pino.Level): LogFn => {
-    return (msg: string, data?: Record<string, unknown>) => {
-      // Something
-      const logByLevel = pinoLogger[level];
+export type Logger = {
+  info: LogFn;
+  warn: LogFn;
+  error: LogFn;
+  fatal: LogFn;
+  debug: LogFn;
+  trace: LogFn;
+  child: (bindings: Record<string, unknown>) => Logger;
+};
 
-      if (!data) {
-        logByLevel(msg);
-        return;
-      }
+const createLogFn = (pinoLogger: pino.Logger, level: LogLevel): LogFn => {
+  return (msg: string, data?: Record<string, unknown>) => {
+    // Something
+    const logByLevel = pinoLogger[level];
 
-      logByLevel(data, msg);
-    };
+    if (!data) {
+      logByLevel(msg);
+      return;
+    }
+
+    logByLevel(data, msg);
   };
+};
 
+const wrapLogger = (pinoLogger: pino.Logger): Logger => {
   return {
-    info: createLogFn("info"),
-    warn: createLogFn("warn"),
-    error: createLogFn("error"),
-    fatal: createLogFn("fatal"),
-    debug: createLogFn("debug"),
-    trace: createLogFn("trace"),
+    info: createLogFn(pinoLogger, "info"),
+    warn: createLogFn(pinoLogger, "warn"),
+    error: createLogFn(pinoLogger, "error"),
+    fatal: createLogFn(pinoLogger, "fatal"),
+    debug: createLogFn(pinoLogger, "debug"),
+    trace: createLogFn(pinoLogger, "trace"),
     child: (bindings: Record<string, unknown>) =>
       wrapLogger(pinoLogger.child(bindings)),
   };
 };
 
-const level = (level: unknown): pino.Level => {
+const level = (level: unknown): LogLevel => {
   switch (level) {
     case "info":
       return "info";
@@ -49,7 +60,7 @@ const level = (level: unknown): pino.Level => {
   }
 };
 
-const build = async (env: Record<string, unknown>): Promise<Logger> => {
+export const Logger = async (env: Record<string, unknown>): Promise<Logger> => {
   const pinoLogger = pino({
     serializers: {
       error: pino.stdSerializers.err,
@@ -65,8 +76,4 @@ const build = async (env: Record<string, unknown>): Promise<Logger> => {
   });
 
   return wrapLogger(pinoLogger);
-};
-
-export const LoggerBuilder = {
-  build,
 };
