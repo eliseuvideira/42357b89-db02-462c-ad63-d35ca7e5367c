@@ -1,5 +1,12 @@
 # @42357b89-db02-462c-ad63-d35ca7e5367c/logger
 
+## 0.4.1
+
+### Patch Changes
+
+- eab8c6a: Patch change
+- 0ae6ed0: Comment
+
 ## 0.4.0
 
 ### Minor Changes
