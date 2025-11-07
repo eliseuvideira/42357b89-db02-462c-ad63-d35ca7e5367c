@@ -60,7 +60,9 @@ const level = (level: unknown): LogLevel => {
   }
 };
 
-const build = async (env: Record<string, unknown>): Promise<Logger> => {
+export const LoggerBuilder = async (
+  env: Record<string, unknown>,
+): Promise<Logger> => {
   const pinoLogger = pino({
     serializers: {
       error: pino.stdSerializers.err,
@@ -77,5 +79,3 @@ const build = async (env: Record<string, unknown>): Promise<Logger> => {
 
   return wrapLogger(pinoLogger);
 };
-
-export const Logger = { build };
