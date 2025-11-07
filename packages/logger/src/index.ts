@@ -1,2 +1,2 @@
-export { Logger } from "./logger";
 export type { Logger } from "./logger";
+export { LoggerBuilder } from "./logger";
