@@ -28,6 +28,7 @@
     "packages/*"
   ],
   "dependencies": {
-    "@biomejs/biome": "^2.3.4"
+    "@biomejs/biome": "^2.3.4",
+    "@types/jest": "^30.0.0"
   }
 }
