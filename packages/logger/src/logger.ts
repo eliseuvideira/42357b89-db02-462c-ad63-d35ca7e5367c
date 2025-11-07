@@ -1,8 +1,8 @@
 import pino from "pino";
 
-export type LogLevel = "info" | "warn" | "error" | "fatal" | "debug" | "trace";
+type LogLevel = "info" | "warn" | "error" | "fatal" | "debug" | "trace";
 
-export type LogFn = (msg: string, data?: Record<string, unknown>) => void;
+type LogFn = (msg: string, data?: Record<string, unknown>) => void;
 
 export type Logger = {
   info: LogFn;
@@ -60,7 +60,7 @@ const level = (level: unknown): LogLevel => {
   }
 };
 
-export const Logger = async (env: Record<string, unknown>): Promise<Logger> => {
+const build = async (env: Record<string, unknown>): Promise<Logger> => {
   const pinoLogger = pino({
     serializers: {
       error: pino.stdSerializers.err,
@@ -77,3 +77,5 @@ export const Logger = async (env: Record<string, unknown>): Promise<Logger> => {
 
   return wrapLogger(pinoLogger);
 };
+
+export const Logger = { build };
