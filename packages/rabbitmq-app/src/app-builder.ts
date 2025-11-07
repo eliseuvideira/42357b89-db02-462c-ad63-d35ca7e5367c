@@ -1,7 +1,6 @@
 import amqplib from "amqplib";
 import type { Message } from "amqplib";
 import type { Logger } from "./types/Logger";
-import type { Config } from "./types/Config";
 import { createRun } from "./functions/create-run";
 import { createStop } from "./functions/create-stop";
 import { withMessageHandling } from "./functions/with-message-handling";
@@ -15,45 +14,47 @@ type Consumer = {
   handler: (message: Message | null) => Promise<void>;
 };
 
-export const AppBuilder = <Context extends { logger: Logger }>(
-  define: (config: Config) => Array<{
-    queue: string;
-    handler: MessageHandler<Context>;
-  }>,
-) => {
-  return {
-    async build(config: Config, logger: Logger): Promise<App> {
-      const definitions = define(config);
+export type RabbitMQAppQueue = {
+  name: string;
+  handler: MessageHandler;
+};
 
-      const connection = await amqplib.connect(config.RABBITMQ_URL);
+export type RabbitMQAppParams = {
+  url: string;
+  queues: RabbitMQAppQueue[];
+  logger: Logger;
+};
 
-      const consumers: Consumer[] = await Promise.all(
-        definitions.map(async ({ queue, handler }) => {
-          const channel = await connection.createChannel();
-          await channel.assertQueue(queue, { durable: true });
+export const RabbitMQApp = async (params: RabbitMQAppParams): Promise<App> => {
+  const { url, queues, logger } = params;
 
-          const state: AppState = {
-            channel,
-            connection,
-            consumerTag: null,
-            isShuttingDown: false,
-            inFlightMessages: 0,
-          };
+  const connection = await amqplib.connect(url);
 
-          const wrappedHandler = withMessageHandling(handler, logger, state);
+  const consumers: Consumer[] = await Promise.all(
+    queues.map(async ({ name, handler }) => {
+      const channel = await connection.createChannel();
+      await channel.assertQueue(name, { durable: true });
 
-          return {
-            queue,
-            state,
-            handler: wrappedHandler,
-          };
-        }),
-      );
+      const state: AppState = {
+        channel,
+        connection,
+        consumerTag: null,
+        isShuttingDown: false,
+        inFlightMessages: 0,
+      };
 
-      const run = createRun(consumers, logger);
-      const stop = createStop(connection, consumers, logger);
+      const wrappedHandler = withMessageHandling(handler, logger, state);
 
-      return { run, stop };
-    },
-  };
+      return {
+        queue: name,
+        state,
+        handler: wrappedHandler,
+      };
+    }),
+  );
+
+  const run = createRun(consumers, logger);
+  const stop = createStop(connection, consumers, logger);
+
+  return { run, stop };
 };

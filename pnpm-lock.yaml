@@ -11,6 +11,9 @@ importers:
       '@biomejs/biome':
         specifier: ^2.3.4
         version: 2.3.4
+      '@types/jest':
+        specifier: ^30.0.0
+        version: 30.0.0
     devDependencies:
       '@changesets/cli':
         specifier: ^2.27.1
