@@ -14,19 +14,22 @@ type Consumer = {
   handler: (message: Message | null) => Promise<void>;
 };
 
-export type RabbitMQAppQueue = {
+export type RabbitMQAppQueue<Context extends { logger: Logger }> = {
   name: string;
-  handler: MessageHandler;
+  handler: MessageHandler<Context>;
 };
 
-export type RabbitMQAppParams = {
+export type RabbitMQAppParams<Context extends { logger: Logger }> = {
   url: string;
-  queues: RabbitMQAppQueue[];
-  logger: Logger;
+  queues: RabbitMQAppQueue<Context>[];
+  context: Context;
 };
 
-export const RabbitMQApp = async (params: RabbitMQAppParams): Promise<App> => {
-  const { url, queues, logger } = params;
+export const RabbitMQApp = async <Context extends { logger: Logger }>(
+  params: RabbitMQAppParams<Context>,
+): Promise<App> => {
+  const { url, queues, context } = params;
+  const logger = context.logger;
 
   const connection = await amqplib.connect(url);
 
@@ -43,7 +46,7 @@ export const RabbitMQApp = async (params: RabbitMQAppParams): Promise<App> => {
         inFlightMessages: 0,
       };
 
-      const wrappedHandler = withMessageHandling(handler, logger, state);
+      const wrappedHandler = withMessageHandling<Context>(handler, logger, state, context);
 
       return {
         queue: name,
