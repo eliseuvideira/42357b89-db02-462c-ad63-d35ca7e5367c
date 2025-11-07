@@ -16,15 +16,12 @@ export type Logger = {
 
 const createLogFn = (pinoLogger: pino.Logger, level: LogLevel): LogFn => {
   return (msg: string, data?: Record<string, unknown>) => {
-    // Something
-    const logByLevel = pinoLogger[level];
-
     if (!data) {
-      logByLevel(msg);
+      pinoLogger[level](msg);
       return;
     }
 
-    logByLevel(data, msg);
+    pinoLogger[level](data, msg);
   };
 };
 
