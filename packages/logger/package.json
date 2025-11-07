@@ -1,6 +1,6 @@
 {
   "name": "@42357b89-db02-462c-ad63-d35ca7e5367c/logger",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Simple pino logger wrapper with consistent signature",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
