@@ -9,6 +9,7 @@ export const withMessageHandling = <Context extends { logger: Logger }>(
   handler: MessageHandler<Context>,
   rootLogger: Logger,
   state: AppState,
+  context: Context,
 ) => {
   return async (message: Message | null) => {
     if (!message) {
@@ -31,7 +32,7 @@ export const withMessageHandling = <Context extends { logger: Logger }>(
 
       logger.debug("Received message", { content });
 
-      const ctx = { logger } as Context;
+      const ctx = { ...context, logger };
 
       const result = await handler(content, ctx);
 
