@@ -46,7 +46,12 @@ export const RabbitMQApp = async <Context extends { logger: Logger }>(
         inFlightMessages: 0,
       };
 
-      const wrappedHandler = withMessageHandling<Context>(handler, logger, state, context);
+      const wrappedHandler = withMessageHandling<Context>(
+        handler,
+        logger,
+        state,
+        context,
+      );
 
       return {
         queue: name,
