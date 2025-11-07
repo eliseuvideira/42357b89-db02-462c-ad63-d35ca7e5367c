@@ -1,0 +1,40 @@
+{
+  "name": "@42357b89-db02-462c-ad63-d35ca7e5367c/logger",
+  "version": "0.1.0",
+  "description": "Simple pino logger wrapper with consistent signature",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "build:check": "tsc --noEmit",
+    "build:watch": "tsc --watch",
+    "dev": "tsc --watch",
+    "test": "jest",
+    "test:watch": "jest --watch"
+  },
+  "keywords": [
+    "logger",
+    "pino",
+    "logging"
+  ],
+  "license": "ISC",
+  "dependencies": {
+    "pino": "^10.1.0",
+    "pino-pretty": "^13.1.2"
+  },
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "jest": "^30.2.0",
+    "ts-jest": "^29.4.5",
+    "typescript": "^5.9.3"
+  }
+}
