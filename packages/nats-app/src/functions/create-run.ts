@@ -8,6 +8,10 @@ export const createRun = (consumers: AppConsumer[], logger: Logger) => {
         logger.debug("Listening on subject", { subject });
 
         for await (const msg of state.messages) {
+          if (state.isShuttingDown) {
+            break;
+          }
+
           await handler(msg);
         }
       }),
