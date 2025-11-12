@@ -12,7 +12,7 @@ export const createRun = (consumers: AppConsumer[], logger: Logger) => {
             break;
           }
 
-          await handler(msg);
+          handler(msg).catch(() => {});
         }
       }),
     );
