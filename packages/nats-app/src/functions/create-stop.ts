@@ -40,6 +40,11 @@ export const createStop = (
     logger.debug("All in-flight messages completed");
 
     if (consumers.length > 0) {
+      await Promise.all(
+        consumers.map(async ({ state }) => {
+          await state.messages.close();
+        }),
+      );
       await nc.drain();
     }
 
