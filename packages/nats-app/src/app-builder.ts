@@ -1,4 +1,4 @@
-import { connect, AckPolicy } from "nats";
+import { connect, AckPolicy, type JsMsg } from "nats";
 import type { Logger } from "./types/Logger";
 import { createRun } from "./functions/create-run";
 import { createStop } from "./functions/create-stop";
@@ -10,6 +10,7 @@ import type { MessageHandler } from "./types/MessageHandler";
 export type AppConsumer = {
   subject: string;
   state: AppState;
+  handler: (msg: JsMsg) => Promise<void>;
 };
 
 export type NATSAppQueue<Context extends { logger: Logger }> = {
@@ -62,15 +63,10 @@ export const NATSApp = async <Context extends { logger: Logger }>(
         context,
       );
 
-      (async () => {
-        for await (const msg of messages) {
-          await wrappedHandler(msg);
-        }
-      })();
-
       return {
         subject,
         state,
+        handler: wrappedHandler,
       };
     }),
   );

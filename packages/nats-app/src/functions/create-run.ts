@@ -1,10 +1,16 @@
-import type { Logger } from "../types/Logger";
 import type { AppConsumer } from "../app-builder";
+import type { Logger } from "../types/Logger";
 
 export const createRun = (consumers: AppConsumer[], logger: Logger) => {
   return async () => {
-    consumers.forEach(({ subject }) => {
-      logger.debug("Listening on subject", { subject });
-    });
+    await Promise.all(
+      consumers.map(async ({ subject, state, handler }) => {
+        logger.debug("Listening on subject", { subject });
+
+        for await (const msg of state.messages) {
+          await handler(msg);
+        }
+      }),
+    );
   };
 };
