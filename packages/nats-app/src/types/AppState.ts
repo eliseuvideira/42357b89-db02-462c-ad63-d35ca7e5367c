@@ -1,8 +1,9 @@
-import type { JetStreamClient, JetStreamSubscription } from "nats";
+import type { Consumer, ConsumerMessages, JetStreamClient } from "nats";
 
 export type AppState = {
   js: JetStreamClient;
-  subscription: JetStreamSubscription;
+  consumer: Consumer;
+  messages: ConsumerMessages;
   isShuttingDown: boolean;
   inFlightMessages: number;
 };

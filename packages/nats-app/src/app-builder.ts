@@ -7,7 +7,7 @@ import type { App } from "./types/App";
 import type { AppState } from "./types/AppState";
 import type { MessageHandler } from "./types/MessageHandler";
 
-export type Consumer = {
+export type AppConsumer = {
   subject: string;
   state: AppState;
 };
@@ -34,19 +34,23 @@ export const NATSApp = async <Context extends { logger: Logger }>(
   const nc = await connect({ servers });
   const js = nc.jetstream();
 
-  const consumers: Consumer[] = await Promise.all(
+  const consumers: AppConsumer[] = await Promise.all(
     queues.map(async ({ stream, consumer, subject, handler }) => {
-      const sub = await js.subscribe(subject, {
-        stream,
-        config: {
-          durable_name: consumer,
-          ack_policy: AckPolicy.Explicit,
-        },
+      const jsm = await nc.jetstreamManager();
+
+      await jsm.consumers.add(stream, {
+        durable_name: consumer,
+        ack_policy: AckPolicy.Explicit,
+        filter_subject: subject,
       });
+
+      const jsConsumer = await js.consumers.get(stream, consumer);
+      const messages = await jsConsumer.consume();
 
       const state: AppState = {
         js,
-        subscription: sub,
+        consumer: jsConsumer,
+        messages,
         isShuttingDown: false,
         inFlightMessages: 0,
       };
@@ -59,7 +63,7 @@ export const NATSApp = async <Context extends { logger: Logger }>(
       );
 
       (async () => {
-        for await (const msg of sub) {
+        for await (const msg of messages) {
           await wrappedHandler(msg);
         }
       })();

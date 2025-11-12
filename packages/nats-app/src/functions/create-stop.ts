@@ -1,11 +1,11 @@
 import type { NatsConnection } from "nats";
 import type { Logger } from "../types/Logger";
-import type { Consumer } from "../app-builder";
+import type { AppConsumer } from "../app-builder";
 import { sleep } from "./sleep";
 
 export const createStop = (
   nc: NatsConnection,
-  consumers: Consumer[],
+  consumers: AppConsumer[],
   logger: Logger,
 ) => {
   let done = false;
@@ -21,7 +21,7 @@ export const createStop = (
     await Promise.all(
       consumers.map(async ({ state }) => {
         state.isShuttingDown = true;
-        await state.subscription.drain();
+        state.messages.close();
       }),
     );
     logger.debug("All consumers cancelled");
