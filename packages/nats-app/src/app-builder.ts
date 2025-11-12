@@ -1,4 +1,4 @@
-import { connect, AckPolicy, type NatsConnection } from "nats";
+import { connect, AckPolicy } from "nats";
 import type { Logger } from "./types/Logger";
 import { createRun } from "./functions/create-run";
 import { createStop } from "./functions/create-stop";

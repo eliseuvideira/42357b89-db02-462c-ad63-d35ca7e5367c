@@ -22,8 +22,7 @@ export const withMessageHandling = <Context extends { logger: Logger }>(
 
     state.inFlightMessages++;
 
-    const correlationId =
-      msg.headers?.get("correlation-id") || randomUUID();
+    const correlationId = msg.headers?.get("correlation-id") || randomUUID();
     const logger = rootLogger.child({ correlationId });
 
     try {
