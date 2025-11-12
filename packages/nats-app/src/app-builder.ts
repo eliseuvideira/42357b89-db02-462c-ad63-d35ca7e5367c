@@ -53,6 +53,7 @@ export const NATSApp = async <Context extends { logger: Logger }>(
       const messages = await jsConsumer.consume();
 
       const state: AppState = {
+        nc,
         js,
         consumer: jsConsumer,
         messages,

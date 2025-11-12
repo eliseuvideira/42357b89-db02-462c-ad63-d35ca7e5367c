@@ -45,7 +45,7 @@ export const withMessageHandling = <Context extends { logger: Logger }>(
         logger.debug("Sending reply", { replyTo });
         const h = headers();
         h.set("correlation-id", correlationId);
-        await state.js.publish(replyTo, sc.encode(JSON.stringify(reply)), {
+        state.nc.publish(replyTo, sc.encode(JSON.stringify(reply)), {
           headers: h,
         });
       }
@@ -71,7 +71,7 @@ export const withMessageHandling = <Context extends { logger: Logger }>(
 
         const h = headers();
         h.set("correlation-id", correlationId);
-        await state.js.publish(replyTo, sc.encode(JSON.stringify(reply)), {
+        state.nc.publish(replyTo, sc.encode(JSON.stringify(reply)), {
           headers: h,
         });
       }
