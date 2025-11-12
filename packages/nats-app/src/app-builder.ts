@@ -39,6 +39,10 @@ export const NATSApp = async <Context extends { logger: Logger }>(
     queues.map(async ({ stream, consumer, subject, handler }) => {
       const jsm = await nc.jetstreamManager();
 
+      await jsm.streams.add({
+        name: stream,
+        subjects: [subject],
+      });
       await jsm.consumers.add(stream, {
         durable_name: consumer,
         ack_policy: AckPolicy.Explicit,
