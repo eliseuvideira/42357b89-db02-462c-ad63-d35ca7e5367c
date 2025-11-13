@@ -32,6 +32,7 @@ export const NATSApp = async <Context extends { logger: Logger }>(
   const { servers, queues, context } = params;
   const logger = context.logger;
 
+  // comment - remove me
   const nc = await connect({ servers });
   const js = nc.jetstream();
 
