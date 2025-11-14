@@ -1,5 +1,11 @@
 # @42357b89-db02-462c-ad63-d35ca7e5367c/logger
 
+## 0.4.4
+
+### Patch Changes
+
+- 95029cc: Use turbo only
+
 ## 0.4.3
 
 ### Patch Changes
