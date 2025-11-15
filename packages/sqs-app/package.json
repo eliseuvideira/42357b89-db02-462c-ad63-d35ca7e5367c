@@ -1,0 +1,43 @@
+{
+  "name": "@42357b89-db02-462c-ad63-d35ca7e5367c/sqs-app",
+  "version": "0.1.0",
+  "description": "SQS consumer application builder with graceful shutdown and Redis replies",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "build:check": "tsc --noEmit",
+    "build:watch": "tsc --watch",
+    "dev": "tsc --watch",
+    "test": "jest",
+    "test:watch": "jest --watch"
+  },
+  "keywords": [
+    "sqs",
+    "aws",
+    "redis",
+    "consumer",
+    "queue"
+  ],
+  "license": "ISC",
+  "dependencies": {
+    "@aws-sdk/client-sqs": "^3.709.0",
+    "ioredis": "^5.4.2"
+  },
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "@types/node": "^24.10.0",
+    "jest": "^30.2.0",
+    "ts-jest": "^29.4.5",
+    "typescript": "^5.9.3"
+  }
+}
