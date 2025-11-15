@@ -18,6 +18,9 @@ export const createRun = (consumers: Consumer[], logger: Logger) => {
                 WaitTimeSeconds: 20,
                 MessageAttributeNames: ["All"],
               }),
+              {
+                abortSignal: state.abortController.signal,
+              },
             );
 
             if (response.Messages && response.Messages.length > 0) {

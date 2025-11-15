@@ -96,9 +96,6 @@ importers:
       '@aws-sdk/client-sqs':
         specifier: ^3.709.0
         version: 3.932.0
-      '@smithy/node-http-handler':
-        specifier: ^4.4.5
-        version: 4.4.5
       ioredis:
         specifier: ^5.4.2
         version: 5.8.2
