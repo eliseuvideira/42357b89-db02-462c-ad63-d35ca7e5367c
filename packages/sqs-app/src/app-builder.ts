@@ -21,20 +21,8 @@ export type SQSAppQueue<Context extends { logger: Logger }> = {
 };
 
 export type SQSAppParams<Context extends { logger: Logger }> = {
-  sqs: {
-    region: string;
-    endpoint?: string;
-    credentials?: {
-      accessKeyId: string;
-      secretAccessKey: string;
-    };
-  };
-  redis: {
-    host: string;
-    port: number;
-    password?: string;
-    db?: number;
-  };
+  sqsEndpoint?: string;
+  redisUrl: string;
   queues: SQSAppQueue<Context>[];
   context: Context;
 };
@@ -42,21 +30,14 @@ export type SQSAppParams<Context extends { logger: Logger }> = {
 export const SQSApp = async <Context extends { logger: Logger }>(
   params: SQSAppParams<Context>,
 ): Promise<App> => {
-  const { sqs, redis, queues, context } = params;
+  const { sqsEndpoint, redisUrl, queues, context } = params;
   const logger = context.logger;
 
   const sqsClient = new SQSClient({
-    region: sqs.region,
-    endpoint: sqs.endpoint,
-    credentials: sqs.credentials,
+    endpoint: sqsEndpoint,
   });
 
-  const redisClient = new Redis({
-    host: redis.host,
-    port: redis.port,
-    password: redis.password,
-    db: redis.db,
-  });
+  const redisClient = new Redis(redisUrl);
 
   const consumers: Consumer[] = queues.map(({ url, handler }) => {
     const state: AppState = {
