@@ -1,7 +1,4 @@
-import {
-  ReceiveMessageCommand,
-  type Message,
-} from "@aws-sdk/client-sqs";
+import { ReceiveMessageCommand } from "@aws-sdk/client-sqs";
 import type { Logger } from "../types/Logger";
 import type { Consumer } from "../app-builder";
 
