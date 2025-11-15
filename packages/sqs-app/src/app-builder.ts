@@ -1,4 +1,5 @@
 import { SQSClient } from "@aws-sdk/client-sqs";
+import { NodeHttpHandler } from "@smithy/node-http-handler";
 import Redis from "ioredis";
 import type { Message } from "@aws-sdk/client-sqs";
 import type { Logger } from "./types/Logger";
@@ -33,8 +34,14 @@ export const SQSApp = async <Context extends { logger: Logger }>(
   const { sqsEndpoint, redisUrl, queues, context } = params;
   const logger = context.logger;
 
+  const requestHandler = new NodeHttpHandler({
+    requestTimeout: 30000,
+    connectionTimeout: 3000,
+  });
+
   const sqsClient = new SQSClient({
     endpoint: sqsEndpoint,
+    requestHandler,
   });
 
   const redisClient = new Redis(redisUrl);
@@ -43,6 +50,7 @@ export const SQSApp = async <Context extends { logger: Logger }>(
     const state: AppState = {
       sqsClient,
       redisClient,
+      requestHandler,
       queueUrl: url,
       isShuttingDown: false,
       pollingActive: false,
@@ -64,7 +72,7 @@ export const SQSApp = async <Context extends { logger: Logger }>(
   });
 
   const run = createRun(consumers, logger);
-  const stop = createStop(sqsClient, redisClient, consumers, logger);
+  const stop = createStop(sqsClient, redisClient, requestHandler, consumers, logger);
 
   return { run, stop };
 };

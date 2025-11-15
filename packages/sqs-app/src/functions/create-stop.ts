@@ -1,4 +1,5 @@
 import type { SQSClient } from "@aws-sdk/client-sqs";
+import type { NodeHttpHandler } from "@smithy/node-http-handler";
 import type { Redis } from "ioredis";
 import type { Logger } from "../types/Logger";
 import type { Consumer } from "../app-builder";
@@ -7,6 +8,7 @@ import { sleep } from "./sleep";
 export const createStop = (
   sqsClient: SQSClient,
   redisClient: Redis,
+  requestHandler: NodeHttpHandler,
   consumers: Consumer[],
   logger: Logger,
 ) => {
@@ -40,6 +42,7 @@ export const createStop = (
     logger.debug("All in-flight messages completed");
 
     sqsClient.destroy();
+    requestHandler.destroy();
     await redisClient.quit();
 
     logger.debug("App stopped");
