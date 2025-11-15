@@ -1,6 +1,6 @@
 {
   "name": "@42357b89-db02-462c-ad63-d35ca7e5367c/sqs-app",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "SQS consumer application builder with graceful shutdown and Redis replies",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
