@@ -72,7 +72,13 @@ export const SQSApp = async <Context extends { logger: Logger }>(
   });
 
   const run = createRun(consumers, logger);
-  const stop = createStop(sqsClient, redisClient, requestHandler, consumers, logger);
+  const stop = createStop(
+    sqsClient,
+    redisClient,
+    requestHandler,
+    consumers,
+    logger,
+  );
 
   return { run, stop };
 };
