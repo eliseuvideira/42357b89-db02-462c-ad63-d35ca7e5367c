@@ -1,41 +1,50 @@
-import { randomUUID } from "node:crypto";
-import {
-  DeleteMessageCommand,
-  ChangeMessageVisibilityCommand,
-  type Message,
-} from "@aws-sdk/client-sqs";
+import type { Message } from "@aws-sdk/client-sqs";
 import type { Logger } from "../types/Logger";
 import type { AppState } from "../types/AppState";
 import type { MessageHandler } from "../types/MessageHandler";
-import type { ReplyError, ReplySuccess } from "../types/Reply";
+import { parseMessageAttributes } from "./parse-message-attributes";
+import { createSuccessReply } from "./create-success-reply";
+import { createErrorReply } from "./create-error-reply";
+import { sendReply } from "./send-reply";
+import { requeueMessage } from "./requeue-message";
+import { deleteMessage } from "./delete-message";
 
-export const withMessageHandling = <Context extends { logger: Logger }>(
-  handler: MessageHandler<Context>,
-  rootLogger: Logger,
-  state: AppState,
-  context: Context,
-) => {
+type WithMessageHandlingParams<Context extends { logger: Logger }> = {
+  handler: MessageHandler<Context>;
+  state: AppState;
+  context: Context;
+};
+
+export const withMessageHandling = <Context extends { logger: Logger }>({
+  handler,
+  state,
+  context,
+}: WithMessageHandlingParams<Context>) => {
   return async (message: Message) => {
     if (state.isShuttingDown) {
-      rootLogger.debug("Shutting down, requeuing message");
-      await state.sqsClient.send(
-        new ChangeMessageVisibilityCommand({
-          QueueUrl: state.queue.url,
-          ReceiptHandle: message.ReceiptHandle,
-          VisibilityTimeout: 0,
-        }),
+      context.logger.debug("Shutting down, requeuing message");
+      await requeueMessage(
+        state.sqsClient,
+        state.queue.url,
+        message.ReceiptHandle,
+        context.logger,
       );
       return;
     }
 
     state.inFlightMessages++;
 
-    const correlationId =
-      message.MessageAttributes?.correlationId?.StringValue || randomUUID();
-    const logger = rootLogger.child({ correlationId });
+    const { correlationId, replyTo } = parseMessageAttributes(message);
+    const logger = context.logger.child({ correlationId });
 
     try {
-      const content = JSON.parse(message.Body || "{}");
+      let content: unknown;
+      try {
+        content = JSON.parse(message.Body || "{}");
+      } catch (parseError) {
+        logger.debug("Failed to parse message body", { error: parseError });
+        content = {};
+      }
 
       logger.debug("Received message", { content });
 
@@ -43,44 +52,29 @@ export const withMessageHandling = <Context extends { logger: Logger }>(
 
       const result = await handler(content, ctx);
 
-      const replyTo = message.MessageAttributes?.replyTo?.StringValue;
       if (replyTo) {
-        const body: ReplySuccess = {
-          status: "success",
-          data: result,
-          correlationId,
-          timestamp: new Date().toISOString(),
-        };
-
-        logger.debug("Sending reply to Redis", { replyTo });
-        await state.redisClient.set(replyTo, JSON.stringify(body), "EX", 300);
+        const reply = createSuccessReply(result, correlationId);
+        await sendReply(state.redisClient, replyTo, reply, logger);
       }
-
-      await state.sqsClient.send(
-        new DeleteMessageCommand({
-          QueueUrl: state.queue.url,
-          ReceiptHandle: message.ReceiptHandle,
-        }),
-      );
-      logger.debug("Message processed and deleted");
     } catch (error) {
       logger.debug("Error processing message", { error });
 
-      const replyTo = message.MessageAttributes?.replyTo?.StringValue;
       if (replyTo) {
-        const body: ReplyError = {
-          status: "error",
-          error: {
-            message: error instanceof Error ? error.message : String(error),
-          },
-          correlationId,
-          timestamp: new Date().toISOString(),
-        };
-
-        logger.debug("Sending error reply to Redis", { replyTo });
-        await state.redisClient.set(replyTo, JSON.stringify(body), "EX", 300);
+        const reply = createErrorReply(error, correlationId);
+        await sendReply(state.redisClient, replyTo, reply, logger);
       }
     } finally {
+      await deleteMessage(
+        state.sqsClient,
+        state.queue.url,
+        message.ReceiptHandle,
+        logger,
+      ).catch((error) => {
+        logger.debug("Failed to delete message", {
+          error,
+        });
+      });
+
       state.inFlightMessages--;
     }
   };

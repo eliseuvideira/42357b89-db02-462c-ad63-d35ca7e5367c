@@ -4,12 +4,19 @@ import type { Logger } from "../types/Logger";
 import type { Consumer } from "../types/Consumer";
 import { sleep } from "./sleep";
 
-export const createStop = (
-  sqsClient: SQSClient,
-  redisClient: Redis,
-  consumers: Consumer[],
-  logger: Logger,
-) => {
+type CreateStopParams = {
+  sqsClient: SQSClient;
+  redisClient: Redis;
+  consumers: Consumer[];
+  logger: Logger;
+};
+
+export const createStop = ({
+  sqsClient,
+  redisClient,
+  consumers,
+  logger,
+}: CreateStopParams) => {
   let done = false;
 
   return async () => {

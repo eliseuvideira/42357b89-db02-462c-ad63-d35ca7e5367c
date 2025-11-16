@@ -3,10 +3,8 @@ import Redis from "ioredis";
 import type { Logger } from "./types/Logger";
 import { createRun } from "./functions/create-run";
 import { createStop } from "./functions/create-stop";
-import { withMessageHandling } from "./functions/with-message-handling";
+import { createConsumers } from "./functions/create-consumers";
 import type { App } from "./types/App";
-import type { AppState } from "./types/AppState";
-import type { Consumer } from "./types/Consumer";
 import type { SQSAppParams } from "./types/SQSAppParams";
 
 export const SQSApp = async <Context extends { logger: Logger }>(
@@ -21,41 +19,17 @@ export const SQSApp = async <Context extends { logger: Logger }>(
 
   const redisClient = new Redis(redis.url);
 
-  const consumers: Consumer[] = queues.map(({ url, handler, polling }) => {
-    const state: AppState = {
-      sqsClient,
-      redisClient,
-      abortController: new AbortController(),
-      queue: {
-        url,
-      },
-      isShuttingDown: false,
-      pollingActive: false,
-      inFlightMessages: 0,
-    };
-
-    const wrappedHandler = withMessageHandling<Context>(
-      handler,
-      logger,
-      state,
-      context,
-    );
-
-    return {
-      queue: {
-        url,
-        polling: {
-          batchSize: polling?.batchSize ?? 10,
-          waitTimeSeconds: polling?.waitTimeSeconds ?? 20,
-        },
-      },
-      state,
-      handler: wrappedHandler,
-    };
+  const consumers = createConsumers({
+    sqsClient,
+    redisClient,
+    queues,
+    context,
   });
 
-  const run = createRun(consumers, logger);
-  const stop = createStop(sqsClient, redisClient, consumers, logger);
+  const run = createRun({ consumers, logger });
+  const stop = createStop({ sqsClient, redisClient, consumers, logger });
+
+  logger.debug("App initialized", { queues: consumers.length });
 
   return { run, stop };
 };

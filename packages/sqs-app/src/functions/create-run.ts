@@ -2,7 +2,12 @@ import { ReceiveMessageCommand } from "@aws-sdk/client-sqs";
 import type { Logger } from "../types/Logger";
 import type { Consumer } from "../types/Consumer";
 
-export const createRun = (consumers: Consumer[], logger: Logger) => {
+type CreateRunParams = {
+  consumers: Consumer[];
+  logger: Logger;
+};
+
+export const createRun = ({ consumers, logger }: CreateRunParams) => {
   return async () => {
     await Promise.all(
       consumers.map(async ({ queue, state, handler }) => {
@@ -24,6 +29,10 @@ export const createRun = (consumers: Consumer[], logger: Logger) => {
             );
 
             if (response.Messages && response.Messages.length > 0) {
+              logger.debug("Received messages", {
+                count: response.Messages.length,
+                queueUrl: queue.url,
+              });
               await Promise.all(
                 response.Messages.map((message) => handler(message)),
               );
