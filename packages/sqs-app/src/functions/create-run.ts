@@ -30,7 +30,10 @@ export const createRun = (consumers: Consumer[], logger: Logger) => {
             }
           } catch (error) {
             if (!state.isShuttingDown) {
-              logger.debug("Error polling queue", { error, queueUrl: queue.url });
+              logger.debug("Error polling queue", {
+                error,
+                queueUrl: queue.url,
+              });
             }
           }
         }
