@@ -1,21 +1,21 @@
 import { ReceiveMessageCommand } from "@aws-sdk/client-sqs";
 import type { Logger } from "../types/Logger";
-import type { Consumer } from "../app-builder";
+import type { Consumer } from "../types/Consumer";
 
 export const createRun = (consumers: Consumer[], logger: Logger) => {
   return async () => {
     await Promise.all(
-      consumers.map(async ({ queueUrl, state, handler }) => {
+      consumers.map(async ({ queue, state, handler }) => {
         state.pollingActive = true;
-        logger.debug("Starting polling on queue", { queueUrl });
+        logger.debug("Starting polling on queue", { queueUrl: queue.url });
 
         while (state.pollingActive && !state.isShuttingDown) {
           try {
             const response = await state.sqsClient.send(
               new ReceiveMessageCommand({
-                QueueUrl: queueUrl,
-                MaxNumberOfMessages: 10,
-                WaitTimeSeconds: 20,
+                QueueUrl: queue.url,
+                MaxNumberOfMessages: queue.polling.batchSize,
+                WaitTimeSeconds: queue.polling.waitTimeSeconds,
                 MessageAttributeNames: ["All"],
               }),
               {
@@ -30,12 +30,12 @@ export const createRun = (consumers: Consumer[], logger: Logger) => {
             }
           } catch (error) {
             if (!state.isShuttingDown) {
-              logger.debug("Error polling queue", { error, queueUrl });
+              logger.debug("Error polling queue", { error, queueUrl: queue.url });
             }
           }
         }
 
-        logger.debug("Stopped polling on queue", { queueUrl });
+        logger.debug("Stopped polling on queue", { queueUrl: queue.url });
       }),
     );
   };

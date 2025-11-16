@@ -1,7 +1,7 @@
 import type { SQSClient } from "@aws-sdk/client-sqs";
 import type { Redis } from "ioredis";
 import type { Logger } from "../types/Logger";
-import type { Consumer } from "../app-builder";
+import type { Consumer } from "../types/Consumer";
 import { sleep } from "./sleep";
 
 export const createStop = (

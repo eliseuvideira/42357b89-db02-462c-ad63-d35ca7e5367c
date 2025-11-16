@@ -5,7 +5,9 @@ export type AppState = {
   sqsClient: SQSClient;
   redisClient: Redis;
   abortController: AbortController;
-  queueUrl: string;
+  queue: {
+    url: string;
+  };
   isShuttingDown: boolean;
   pollingActive: boolean;
   inFlightMessages: number;

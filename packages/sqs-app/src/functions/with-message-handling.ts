@@ -20,7 +20,7 @@ export const withMessageHandling = <Context extends { logger: Logger }>(
       rootLogger.debug("Shutting down, requeuing message");
       await state.sqsClient.send(
         new ChangeMessageVisibilityCommand({
-          QueueUrl: state.queueUrl,
+          QueueUrl: state.queue.url,
           ReceiptHandle: message.ReceiptHandle,
           VisibilityTimeout: 0,
         }),
@@ -62,7 +62,7 @@ export const withMessageHandling = <Context extends { logger: Logger }>(
 
       await state.sqsClient.send(
         new DeleteMessageCommand({
-          QueueUrl: state.queueUrl,
+          QueueUrl: state.queue.url,
           ReceiptHandle: message.ReceiptHandle,
         }),
       );
