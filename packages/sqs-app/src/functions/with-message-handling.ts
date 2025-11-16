@@ -53,12 +53,7 @@ export const withMessageHandling = <Context extends { logger: Logger }>(
         };
 
         logger.debug("Sending reply to Redis", { replyTo });
-        await state.redisClient.set(
-          replyTo,
-          JSON.stringify(body),
-          "EX",
-          300,
-        );
+        await state.redisClient.set(replyTo, JSON.stringify(body), "EX", 300);
       }
 
       await state.sqsClient.send(
@@ -83,12 +78,7 @@ export const withMessageHandling = <Context extends { logger: Logger }>(
         };
 
         logger.debug("Sending error reply to Redis", { replyTo });
-        await state.redisClient.set(
-          replyTo,
-          JSON.stringify(body),
-          "EX",
-          300,
-        );
+        await state.redisClient.set(replyTo, JSON.stringify(body), "EX", 300);
       }
     } finally {
       state.inFlightMessages--;
