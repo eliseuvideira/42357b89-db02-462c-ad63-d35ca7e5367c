@@ -45,16 +45,17 @@ export const withMessageHandling = <Context extends { logger: Logger }>(
 
       const replyTo = message.MessageAttributes?.replyTo?.StringValue;
       if (replyTo) {
-        const reply: ReplySuccess = {
+        const body: ReplySuccess = {
           status: "success",
           data: result,
+          correlationId,
           timestamp: new Date().toISOString(),
         };
 
         logger.debug("Sending reply to Redis", { replyTo });
         await state.redisClient.set(
-          `reply:${correlationId}`,
-          JSON.stringify(reply),
+          replyTo,
+          JSON.stringify(body),
           "EX",
           300,
         );
@@ -72,21 +73,19 @@ export const withMessageHandling = <Context extends { logger: Logger }>(
 
       const replyTo = message.MessageAttributes?.replyTo?.StringValue;
       if (replyTo) {
-        const reply: ReplyError = {
+        const body: ReplyError = {
           status: "error",
           error: {
             message: error instanceof Error ? error.message : String(error),
-            details: {
-              type: error instanceof Error ? error.constructor.name : "Error",
-              stack: error instanceof Error ? error.stack : undefined,
-            },
           },
+          correlationId,
           timestamp: new Date().toISOString(),
         };
 
+        logger.debug("Sending error reply to Redis", { replyTo });
         await state.redisClient.set(
-          `reply:${correlationId}`,
-          JSON.stringify(reply),
+          replyTo,
+          JSON.stringify(body),
           "EX",
           300,
         );

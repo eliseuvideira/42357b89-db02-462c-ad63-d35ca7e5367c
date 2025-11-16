@@ -1,0 +1,15 @@
+services:
+  redis:
+    image: redis:latest
+    ports:
+      - 6379:6379
+  sqs:
+    image: localstack/localstack:latest
+    ports:
+      - 4566:4566
+    environment:
+      - SERVICES=sqs
+      - DATA_DIR=/tmp/localstack/data
+
+volumes:
+  localstack_data:
