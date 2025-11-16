@@ -30,7 +30,7 @@ export const SQSApp = async <Context extends { logger: Logger }>(
   const run = createRun({ consumers, logger });
   const stop = createStop({ sqsClient, redisClient, consumers, logger });
 
-  await verifyConnections(sqsClient, redisClient, logger);
+  await verifyConnections(sqsClient, redisClient, queues, logger);
   logger.debug("App initialized", { queues: consumers.length });
 
   return { run, stop };

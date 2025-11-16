@@ -60,7 +60,7 @@ export const createRun = ({ consumers, logger }: CreateRunParams) => {
               }
 
               const backoffMs = Math.min(
-                1000 * Math.pow(2, consecutiveErrors - 1),
+                1000 * 2 ** (consecutiveErrors - 1),
                 30000,
               );
               logger.debug("Backing off before retry", {
