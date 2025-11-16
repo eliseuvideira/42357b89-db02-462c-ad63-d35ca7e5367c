@@ -1,4 +1,7 @@
-import { ChangeMessageVisibilityCommand, type SQSClient } from "@aws-sdk/client-sqs";
+import {
+  ChangeMessageVisibilityCommand,
+  type SQSClient,
+} from "@aws-sdk/client-sqs";
 import type { Logger } from "../types/Logger";
 
 export const requeueMessage = async (
