@@ -4,6 +4,7 @@ import type { Logger } from "./types/Logger";
 import { createRun } from "./functions/create-run";
 import { createStop } from "./functions/create-stop";
 import { createConsumers } from "./functions/create-consumers";
+import { verifyConnections } from "./functions/verify-connections";
 import type { App } from "./types/App";
 import type { SQSAppParams } from "./types/SQSAppParams";
 
@@ -29,6 +30,7 @@ export const SQSApp = async <Context extends { logger: Logger }>(
   const run = createRun({ consumers, logger });
   const stop = createStop({ sqsClient, redisClient, consumers, logger });
 
+  await verifyConnections(sqsClient, redisClient, logger);
   logger.debug("App initialized", { queues: consumers.length });
 
   return { run, stop };

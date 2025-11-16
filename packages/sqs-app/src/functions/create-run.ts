@@ -1,6 +1,7 @@
 import { ReceiveMessageCommand } from "@aws-sdk/client-sqs";
 import type { Logger } from "../types/Logger";
 import type { Consumer } from "../types/Consumer";
+import { sleep } from "./sleep";
 
 type CreateRunParams = {
   consumers: Consumer[];
@@ -13,6 +14,9 @@ export const createRun = ({ consumers, logger }: CreateRunParams) => {
       consumers.map(async ({ queue, state, handler }) => {
         state.pollingActive = true;
         logger.debug("Starting polling on queue", { queueUrl: queue.url });
+
+        let consecutiveErrors = 0;
+        const maxConsecutiveErrors = 5;
 
         while (state.pollingActive && !state.isShuttingDown) {
           try {
@@ -28,6 +32,8 @@ export const createRun = ({ consumers, logger }: CreateRunParams) => {
               },
             );
 
+            consecutiveErrors = 0;
+
             if (response.Messages && response.Messages.length > 0) {
               logger.debug("Received messages", {
                 count: response.Messages.length,
@@ -39,10 +45,29 @@ export const createRun = ({ consumers, logger }: CreateRunParams) => {
             }
           } catch (error) {
             if (!state.isShuttingDown) {
+              consecutiveErrors++;
               logger.debug("Error polling queue", {
                 error,
                 queueUrl: queue.url,
+                consecutiveErrors,
               });
+
+              if (consecutiveErrors >= maxConsecutiveErrors) {
+                logger.debug("Max consecutive errors reached, stopping", {
+                  queueUrl: queue.url,
+                });
+                throw error;
+              }
+
+              const backoffMs = Math.min(
+                1000 * Math.pow(2, consecutiveErrors - 1),
+                30000,
+              );
+              logger.debug("Backing off before retry", {
+                queueUrl: queue.url,
+                backoffMs,
+              });
+              await sleep(backoffMs);
             }
           }
         }
