@@ -11,12 +11,10 @@ import type { SQSAppParams } from "./types/SQSAppParams";
 export const SQSApp = async <Context extends { logger: Logger }>(
   params: SQSAppParams<Context>,
 ): Promise<App> => {
-  const { sqs, redis, queues, context } = params;
+  const { redis, queues, context } = params;
   const logger = context.logger;
 
-  const sqsClient = new SQSClient({
-    endpoint: sqs.endpoint,
-  });
+  const sqsClient = new SQSClient({});
 
   const redisClient = new Redis(redis.url);
 

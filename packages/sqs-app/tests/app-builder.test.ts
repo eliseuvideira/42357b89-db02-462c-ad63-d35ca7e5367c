@@ -16,6 +16,7 @@ const setup = async (handler: jest.Mock) => {
   process.env.AWS_ACCESS_KEY_ID = AWS_ACCESS_KEY_ID;
   process.env.AWS_SECRET_ACCESS_KEY = AWS_SECRET_ACCESS_KEY;
   process.env.AWS_REGION = AWS_REGION;
+  process.env.AWS_ENDPOINT_URL_SQS = SQS_ENDPOINT;
 
   const sqs = new SQSClient({
     endpoint: SQS_ENDPOINT,
@@ -56,9 +57,6 @@ const setup = async (handler: jest.Mock) => {
   };
 
   const app = await SQSApp({
-    sqs: {
-      endpoint: SQS_ENDPOINT,
-    },
     redis: {
       url: REDIS_URL,
     },
