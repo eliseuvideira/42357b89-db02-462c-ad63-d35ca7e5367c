@@ -12,8 +12,9 @@ export const verifyConnections = async <T extends { url: string }>(
     await redisClient.ping();
     logger.debug("Redis connection verified");
   } catch (error) {
-    logger.debug("Redis connection failed", { error });
-    throw new Error("Failed to connect to Redis");
+    throw new Error("Failed to connect to Redis", {
+      cause: error,
+    });
   }
 
   for (const queue of queues) {
@@ -26,8 +27,9 @@ export const verifyConnections = async <T extends { url: string }>(
       );
       logger.debug("Queue verified", { queueUrl: queue.url });
     } catch (error) {
-      logger.debug("Queue verification failed", { queueUrl: queue.url, error });
-      throw new Error(`Queue not found: ${queue.url}`);
+      throw new Error(`Queue not found: ${queue.url}`, {
+        cause: error,
+      });
     }
   }
 
